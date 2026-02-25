@@ -107,4 +107,3 @@ app/
 - [Get Quote (v2)](https://docs.relay.link/references/api/get-quote-v2)
 - [Intent Status (v3)](https://docs.relay.link/references/api/get-intent-status-v3)
 - [API Keys](https://docs.relay.link/references/api/api-keys)
-- [Relay Explorer](https://relay.link/)
