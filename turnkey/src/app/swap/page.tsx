@@ -2,16 +2,12 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import { parseEther, type Hex } from "viem";
+import { parseEther } from "viem";
 import { base } from "viem/chains";
 import { useBalance } from "wagmi";
 import { useTurnkeyWallet } from "../hooks/useTurnkeyWallet";
-import {
-  getQuote,
-  submitSignature,
-  type QuoteResponse,
-} from "../actions/relay";
-import { signItem } from "../relay";
+import { getQuote, type QuoteResponse } from "../actions/relay";
+import { executeQuote } from "../actions/relay-client";
 import { QuoteDisplay } from "../components/QuoteDisplay";
 import { StatusTracker } from "../components/StatusTracker";
 import { SessionExpiredBanner } from "../components/SessionExpiredBanner";
@@ -86,52 +82,18 @@ export default function SwapPage() {
 
     setExecuting(true);
     setError(null);
-    let lastRequestId: string | undefined;
 
     try {
-      for (const step of quote.steps) {
-        setTxProgress(`${step.action}...`);
+      const reqId = await executeQuote({
+        quote,
+        account: viemAccount,
+        chains: [CHAIN],
+        makeWalletClient,
+        makePublicClient,
+        onProgress: setTxProgress,
+      });
 
-        for (const item of step.items) {
-          if (item.status === "complete") continue;
-
-          if (step.kind === "signature") {
-            const client = makeWalletClient(CHAIN);
-            const signature = await signItem(client, item);
-
-            if (item.data.post) {
-              await submitSignature(
-                item.data.post.endpoint,
-                signature,
-                item.data.post.body
-              );
-            }
-
-            lastRequestId =
-              (item.data.post?.body?.requestId as string) ??
-              step.requestId ??
-              lastRequestId;
-          } else if (step.kind === "transaction") {
-            const client = makeWalletClient(CHAIN);
-            const publicClient = makePublicClient(CHAIN);
-
-            const hash = await client.sendTransaction({
-              account: viemAccount,
-              chain: CHAIN,
-              to: item.data.to as Hex,
-              data: (item.data.data as Hex) ?? "0x",
-              value: item.data.value ? BigInt(item.data.value) : 0n,
-            });
-
-            await publicClient.waitForTransactionReceipt({ hash });
-            lastRequestId = step.requestId ?? lastRequestId;
-          }
-        }
-      }
-
-      if (lastRequestId) {
-        setRequestId(lastRequestId);
-      }
+      if (reqId) setRequestId(reqId);
       setTxProgress("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Transaction failed");
