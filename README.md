@@ -7,6 +7,7 @@ Example Next.js apps showing how to integrate the [Relay](https://relay.link/) p
 | Example | Wallet Type | Auth Method | Description |
 | --- | --- | --- | --- |
 | [`/crossmint`](./crossmint) | Smart wallet (EVM) | Email (Crossmint) | Uses Crossmint smart wallets with email-based signers |
+| [`/privy`](./privy) | EOA / Embedded | Wallet / Email (Privy) | Uses Privy auth with external wallets (MetaMask) or embedded wallets |
 | [`/turnkey`](./turnkey) | HD wallet (EOA) | Passkey / Email OTP (Turnkey) | Uses Turnkey sub-organizations with HD wallets via viem |
 
 Each example is a standalone Next.js app with its own dependencies. See the README in each directory for setup instructions.
